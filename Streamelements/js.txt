@@ -1,0 +1,308 @@
+var App = {};
+// var userId = window.location.pathname.split('?')[0].substring(1);
+var userId = '{{key}}';
+
+var container = document.getElementById('container');
+var currentAlbumCover = document.getElementById('album-current');
+var newAlbumCover = document.getElementById('album-new');
+var artistsElement = document.getElementById('artists');
+var songName = document.getElementById('name');
+
+function timeoutPromise(dur) {
+    return new Promise(function(resolve) {
+        setTimeout(function() {
+            resolve();
+        }, dur);
+    });
+}
+
+function makeSongName(item) {
+    return `${item.album && item.album.artists ? item.album.artists.map(a => a.name).join(', ') : 'Various Artists'} - ${item.name}`;
+}
+
+App.currentSong = '';
+App.currentCover = '';
+App.user = null;
+App.loadedCovers = {};
+App.waitingSocket = false;
+App.socketReady = false;
+App.open = false;
+App.firstAlbumLoad = true;
+App.scrollingSong = false;
+App.scrollingArtists = false;
+
+App.fetchUser = function() {
+    return fetch('https://spotify.aidenwallis.co.uk/user/details/' + userId)
+        .then(function(response) {
+            if (response.status === 404) {
+                window.location = '/';
+                return;
+            }
+            if (response.status !== 200) {
+                return timeoutPromise(2000)
+                    .then(function() {
+                        return App.fetchUser();
+                    });
+            }
+            return response.json();
+        })
+        .then(function(data) {
+            App.user = data;
+            return data;
+        })
+        .catch(function(error) {
+            return timeoutPromise(2000)
+                .then(function() {
+                    return App.fetchUser();
+                });
+        });
+};
+
+App.refreshToken = function() {
+    return fetch('https://spotify.aidenwallis.co.uk/user/refresh/' + userId, {
+            method: 'POST'
+        })
+        .then(function(response) {
+            if (response.status !== 200) {
+                return timeoutPromise(2000)
+                    .then(function() {
+                        return App.refreshToken();
+                    });
+            }
+            return response.json();
+        })
+        .then(function(json) {
+            if (!json.token) {
+                return timeoutPromise(2000)
+                    .then(function() {
+                        return App.refreshToken();
+                    });
+            }
+            App.user.token = json.token;
+            return App.checkSong();
+        })
+        .catch(function(error) {
+            return timeoutPromise(2000)
+                .then(function() {
+                    return App.refreshToken();
+                })
+        })
+
+}
+
+var songtitle;
+App.checkSong = function() {
+    if (App.user.clientPoll) {
+        return fetch('https://api.spotify.com/v1/me/player/currently-playing', {
+                headers: {
+                    Authorization: `Bearer ${App.user.token}`,
+                }
+            })
+            .then(function(response) {
+                if (response.status === 401) {
+                    return App.refreshToken();
+                }
+                if (response.status === 429) {
+                    // Ratelimited. Wait till we're un-ratelimited
+                    if (response.headers.has('Retry-After')) {
+                        const delay = parseInt(response.headers.get('Retry-After'));
+                        return timeoutPromise((delay * 1000) + 1000) // Second padding.
+                            .then(function() {
+                                App.checkSong();
+                            });
+                    }
+                }
+                if (response.status === 204) {
+                    // No song playing.
+                    if (App.open) {
+                        App.close();
+                    }
+                    return timeoutPromise(5000)
+                        .then(function() {
+                            App.checkSong();
+                        });
+                }
+                return response.json().then(function(json) {
+                    if (!json.item && !json.hasOwnProperty('is_playing')) {
+                        // Spotify API error.
+                        return timeoutPromise(5000)
+                            .then(function() {
+                                App.checkSong();
+                            });
+                    }
+                    if (!json.is_playing) {
+                        if (App.open) {
+                            App.close();
+                        }
+                    } else {
+                        const albumImages = json.item.album.images.reduce(function(acc, cur) {
+                            acc[cur.height] = cur.url;
+                            return acc;
+                        }, {});
+                        const data = {
+                            songName: makeSongName(json.item),
+                            artists: json.item.artists,
+                            title: json.item.name,
+                            albumCover: albumImages[Math.max(...Object.keys(albumImages))],
+                        };
+                      songtitle = json;
+                      
+                    }
+                });
+            })
+    }
+    return fetch('https://spotify.aidenwallis.co.uk/u/' + userId + '?json=true&ts=' + Date.now())
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
+            setTimeout(function() {
+                App.checkSong();
+            }, 5000);
+            if (data.error) {
+                if (App.open) {
+                    App.close();
+                }
+                return;
+            }
+            if (!App.open) {
+                App.openElement();
+                setTimeout(function() {
+                    App.startUpdate(data);
+                }, 1200);
+                return;
+            }
+            App.startUpdate(data);
+        })
+        .catch(function(err) {
+            console.error(err);
+            return timeoutPromise(5000)
+                .then(function() {
+                    App.checkSong();
+                });
+        });
+};
+setInterval(function(){ 
+  App.checkSong();
+}, 5000);
+App.openSocket = function() {
+    const player = new Spotify.Player({
+        name: 'Spotify now playing player',
+        getOAuthToken: function(done) {
+            done && done(App.user.token);
+        },
+    });
+
+    player.addListener('player_state_changed', function(state) {
+        console.log(state);
+    });
+
+    player.addListener('initialization_error', playerError);
+    player.addListener('authentication_error', reloadPlayer);
+    player.addListener('account_error', reloadPlayer);
+    player.addListener('playback_error', reloadPlayer);
+
+    player.addListener('ready', function(state) {
+        console.log('Ready with Device ID ', state.device_id);
+    });
+
+    player.addListener('not_ready', function(state) {
+        console.log('Device ID has gone offline', state.device_id);
+    });
+
+    player.connect();
+};
+App.start = function() {
+    App.fetchUser().then(function() {
+        App.checkSong();
+    },5000);
+};
+App.start();
+
+var ttl = new TimelineMax();  
+ttl.timeScale(1);
+
+var btl = new TimelineMax();  
+btl.timeScale(1);
+
+var newsong, supporterWidth, headlineWidth;
+var supporterAnimationActive = false;
+var supporters = [];
+
+function spotifyInfo(){
+  var fuckingartist = songtitle.item.artists[0].name;
+  var fuckingsong = songtitle.item.name;
+  if(fuckingsong !== newsong && fuckingsong !== ""){
+    supporters.push({ type: fuckingartist, name: fuckingsong, icon: "tipIcon"});
+    newsong = fuckingsong;
+    console.log();
+  }
+  
+  if(supporters.length >= 1 && !supporterAnimationActive){
+    supporterAnimationActive = true;
+    supporterAnimations();
+  }
+}
+
+setInterval(function(){ 
+  spotifyInfo();
+}, 5000);
+
+function supporterAnimations(){
+
+  $("#hiddenSubject").html(supporters[0].name);
+  $("#hiddenHeadline").html(supporters[0].type);
+  supporterWidth = $("#hiddenSubject").width();
+  headlineWidth = $("#hiddenHeadline").width();
+  
+  if(supporterWidth < headlineWidth){
+    supporterWidth = headlineWidth;
+  }
+  var $colorOverlay = $('.color-overlay');
+  ttl.add( TweenMax.to("#color-overlay", 1, {width: "100%", ease: Quart.easeInOut}));
+  ttl.add( TweenMax.to("#color-overlay", 1, {width: 0, ease: Power4.easeInOut}));
+  ttl.add( TweenMax.to("#textContainer", 1, {width: 0, ease: Power4.easeInOut}), '-=1.2');
+  
+  ttl.add( TweenMax.to("#textArea", 1, {ease: Power4.easeInOut, onComplete: updateSupporter}),"-=1");
+  
+  ttl.add( TweenMax.to("#textContainer", 1, {ease: Power4.easeOut, width: supporterWidth + 25} ));
+  
+  ttl.add( TweenMax.to("#textArea", 1, {ease: Power4.easeInOut, onComplete: removeSupporter}),"-=1");
+} 
+
+function updateSupporter(){
+  updateIcon();
+  var tl = new TimelineLite, 
+    mySplitText = new SplitText($("#headline").html(supporters[0].type), {type:"chars"}), 
+    chars = mySplitText.chars;
+  tl.staggerFrom(chars, 0.4, {delay: 0, opacity: 0, x: "0%", y: "-30px", ease: Power4.easeInOut, stagger: {
+    from: 0,
+    amount: .4
+  }}, null);
+  var tl = new TimelineLite,
+    mySplitText = new SplitText($("#subject").html(supporters[0].name), {type:"chars"}), 
+    chars = mySplitText.chars;
+  tl.staggerFrom(chars, 0.4, {opacity: 0, x: "0%", y: "30px", ease: Power4.easeInOut, stagger: {
+    from: 0,
+    amount: .4
+  }}, null);
+  var element = document.getElementById("subject");
+  const maxWidth = element.scrollWidth - 500;
+  if (element.offsetWidth > maxWidth){
+  element.classList.remove("scrollIt");
+} else{
+   element.classList.add("scrollIt");
+}
+}
+
+function updateIcon(){  
+  TweenMax.to("#icons .icon", 1, {opacity: 0} )
+  TweenMax.to("#" + supporters[0].icon, 1, {opacity: 1} )
+}
+
+function removeSupporter() {
+  supporters.shift();
+  supporterAnimationActive = false;
+}
+
+

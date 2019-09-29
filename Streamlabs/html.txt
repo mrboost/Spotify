@@ -1,0 +1,11 @@
+
+<div id="hiddenSubject"></div>
+<div id="hiddenHeadline"></div>
+<div id="overlayHolder">
+    <div id="textArea">
+      <div id="color-overlay"></div>
+      <div id="textContainer">
+        <div id="headline" class="text">{name}</div>
+        <div id="subject" class="text">{name2}</div>
+      </div>
+

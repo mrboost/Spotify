@@ -1,0 +1,32 @@
+{
+    "key": {
+        "type": "textfield",
+        "label": "Spotify Key",
+        "value": ""
+    },
+    "name": {
+        "type": "textfield",
+        "label": "Top Line - Text",
+        "value": "MrBoost"
+    },
+    "name2": {
+        "type": "textfield",
+        "label": "Bottom Line - Text",
+        "value": "on Twich"
+    },
+    "bgColor": {
+        "type": "colorpicker",
+        "label": "Backgound color",
+        "value": "#FFFFFF"
+    },
+    "fontColor": {
+        "type": "colorpicker",
+        "label": "Text color",
+        "value": "#000000"
+    },
+    "bgSlider": {
+        "type": "colorpicker",
+        "label": "Backgound color",
+        "value": "rgb(0, 0, 0)"
+    }
+}

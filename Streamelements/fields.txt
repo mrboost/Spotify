@@ -1,0 +1,32 @@
+{
+   "key": {
+    "type": "text",
+    "label": "Spotify Key",
+    "value": "Place Key Here"
+  },
+  "name": {
+    "type": "text",
+    "label": "Top Line - Text",
+    "value": "Username"
+  },
+  "name2": {
+    "type": "text",
+    "label": "Bottom Line - Text",
+    "value": "on Twich"
+  },
+   "bgColor": {
+    "type": "colorpicker",
+    "label": "Backgound color",
+    "value": "rgb(255, 255, 255)"
+  },
+  "fontColor": {
+    "type": "colorpicker",
+    "label": "Backgound color",
+    "value": "rgb(0, 0, 0)"
+  },
+  "bgSlider": {
+    "type": "colorpicker",
+    "label": "Backgound color",
+    "value": "rgb(0, 0, 0)"
+    }
+}

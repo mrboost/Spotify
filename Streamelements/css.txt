@@ -1,0 +1,112 @@
+@import url('https://fonts.googleapis.com/css?family={font_family}:100,300,400,500,700,900&display=swap');
+:root {
+  --mainColor: {mainColor};
+  --secondaryColor: {secondaryColor};
+  --latestColor: {latestColor};
+  --eventsColor: {eventsColor};
+  --fontSize: {fontSize}px;
+  --tagFontSize: {tagFontSize}px;
+  --nameWeight: {nameWeight};
+  --defaultWeight: {defaultWeight};
+  --letterSpacing: {letterSpacing}px;
+  --textTransform: {textTransform};
+  --mainBgOpacity: calc({mainBgOpacity} * .01);
+  --secondBgOpacity: calc({secondBgOpacity} * .01);
+}
+html, body {
+  padding: 0;
+  margin: 0;
+  font-family: "roboto";
+}
+
+#overlayHolder {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+ 
+}
+
+#textArea {
+  background: {{bgColor}};
+  position: fixed;
+  display: inline-block;
+  margin-bottom: 10px;
+  z-index: 999;
+}
+
+#headline {
+  transform-origin: left center;
+  white-space: nowrap;
+  position: relative;
+  
+} 
+#textContainer {
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+  display: inline-block;
+  max-width: 562px;
+
+}
+
+#headline, #hiddenHeadline {
+  padding: 10px 10px 0px 10px;
+  font-family: {font_family};
+  color: {{fontColor}};
+  font-size: 16px;
+  text-transform: uppercase;
+}
+#subject, #hiddenSubject {
+  font-family: {font_family};
+  color: {{fontColor}};
+  padding: 0px 10px 10px 10px;
+  text-transform: uppercase;
+  line-height: 24px;
+  font-weight: 900;
+  font-size: 34px;
+  max-width: 562px;
+}
+
+#hiddenSubject, #hiddenHeadline {
+  opacity: .5;
+  position: absolute;
+  left: 0;
+  top: 200px;
+}
+#hiddenHeadline {
+  visibility: hidden;
+}
+#hiddenSubject {
+  visibility: hidden;
+}
+
+#color-overlay {
+    position: absolute;
+    z-index: 999;
+    
+}
+
+#color-overlay {
+  background-color: {{bgSlider}};
+    width: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+  	z-index: 999;
+}
+
+.scrollIt{
+ animation: scrolling 15s linear infinite;
+ animation-delay: 5s;
+ 
+}
+
+@keyframes scrolling {
+ 0%   { 
+ transform: translateX(105%);         
+ }
+ 100% { 
+ transform: translateX(-175%); 
+ }
+}
