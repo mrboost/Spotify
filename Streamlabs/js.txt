@@ -15,7 +15,6 @@ loadScript('https://ext-assets.streamlabs.com/users/140067/gsap2-1-2.js').then(f
     });
   });
 
-document.addEventListener('onLoad', function(obj) {
 var App = {};
 // var userId = window.location.pathname.split('?')[0].substring(1);
 var userId = '{key}';
@@ -236,18 +235,6 @@ App.start = function() {
     },5000);
 };
 App.start();
-function loadScript (url) {
-    return new Promise(function (resolve, reject) {
-      const script = document.createElement('script')
-      script.onload = resolve
-      script.onerror = reject
-
-      script.src = url
-
-      document.head.appendChild(script)
-    })
-  }
-
 
 
 var newsong, supporterWidth, headlineWidth;
@@ -330,4 +317,4 @@ function removeSupporter() {
   supporterAnimationActive = false;
 }
 
-});
+
