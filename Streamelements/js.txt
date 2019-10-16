@@ -1,3 +1,16 @@
+ function loadScript (url) {
+    return new Promise(function (resolve, reject) {
+        const script = document.createElement('script')
+        script.onload = resolve
+        script.onerror = reject
+        script.src = url
+
+        document.head.appendChild(script)
+    })
+}
+
+
+
 var supporterAnimationActive = false;
 var supporters = [];
 var App = {};
@@ -155,7 +168,7 @@ App.checkSong = function () {
           if (App.open) {
             App.startUpdate(data);
           } else {
-            supporters.push({ type: fuckingartist, name: fuckingsong, icon: "tipIcon"});
+            
             App.openElement();
             return timeoutPromise(1200).
             then(function () {
@@ -212,8 +225,8 @@ App.checkSong = function () {
 };
 var songplaying;
 App.close = function () {
-var nick = ['{{name}}'];
-var nick2 = ['{{name2}}'];
+var nick = ['{name}'];
+var nick2 = ['{name2}'];
 var fuckingartist;
 var fuckingsong;
   App.open = false;
@@ -239,6 +252,7 @@ var fuckingsong;
     container.classList.remove('raise');
   }, 1350);
   setTimeout(function () {
+    
     currentAlbumCover.src = '';
     currentAlbumCover.classList.remove('active');
     newAlbumCover.src = '';
@@ -250,6 +264,7 @@ App.startUpdate = function (data) {
   if (App.currentSong !== data.songName) {
     App.currentSong = data.songName;
     App.updateSongName(data.artists, data.title);
+    
   }
   if (App.currentCover !== data.albumCover) {
     App.currentCover = data.albumCover;
@@ -260,12 +275,14 @@ App.startUpdate = function (data) {
 App.openElement = function () {
   App.open = true;
   container.classList.add('raise');
+  
   setTimeout(function () {
     container.classList.add('active');
   }, 550);
 };
 
 App.updateSongName = function (artists = [], name) {
+  supporters.push({ type: fuckingartist, name: fuckingsong, icon: "tipIcon"});
   const maxWidth = container.offsetWidth - 80; // padding for other shit
   artistsElement.classList.remove('active');
   setTimeout(function () {
@@ -382,12 +399,14 @@ App.start = function () {
 };
 
 App.start();
+loadScript('https://ext-assets.streamlabs.com/users/140067/gsap2-1-2.js').then(function () {
+    loadScript('https://ext-assets.streamlabs.com/users/140067/SplitText-2-1-2.min.js').then(function () {
+        ttl = new TimelineMax();
+    });
+  });
 
-var ttl = new TimelineMax();  
-ttl.timeScale(1);
 
-var btl = new TimelineMax();  
-btl.timeScale(1);
+
 var newsong, supporterWidth, headlineWidth;
 function spotifyInfo() {
   if(fuckingsong !== newsong && fuckingsong !== ""){
