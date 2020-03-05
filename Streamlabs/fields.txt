@@ -1,4 +1,9 @@
 {
+    "font_family": {
+        "label": "Font Family",
+        "type": "fontpicker",
+        "value": "Roboto"
+    },
     "key": {
         "type": "textfield",
         "label": "Spotify Key",
@@ -12,7 +17,12 @@
     "name2": {
         "type": "textfield",
         "label": "Bottom Line - Text",
-        "value": "on Twich"
+        "value": "on Twitch"
+    },
+    "barColor": {
+        "type": "colorpicker",
+        "label": "Hazard bar color",
+        "value": "#FFFFFF"
     },
     "bgColor": {
         "type": "colorpicker",
@@ -27,6 +37,6 @@
     "bgSlider": {
         "type": "colorpicker",
         "label": "Backgound color",
-        "value": "rgb(0, 0, 0)"
+        "value": "#767676"
     }
 }
